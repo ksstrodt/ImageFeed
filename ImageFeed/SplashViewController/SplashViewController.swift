@@ -17,7 +17,6 @@ final class SplashViewController: UIViewController {
         if storage.token != nil {
             switchToTabBarController()
         } else {
-            // Show Auth Screen
             performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
         }
     }

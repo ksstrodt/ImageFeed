@@ -50,8 +50,9 @@ extension AuthViewController: WebViewViewControllerDelegate {
                 switch result {
                 case .success:
                     DispatchQueue.main.async {
+                        guard let self = self else { return }
                         vc.dismiss(animated: true) {
-                            self?.delegate?.didAuthenticate(self!)
+                            self.delegate?.didAuthenticate(self)
                         }
                     }
                 case .failure(let error):
