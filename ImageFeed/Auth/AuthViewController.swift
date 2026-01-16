@@ -6,21 +6,35 @@
 //
 import UIKit
 
+// MARK: - AuthViewControllerDelegate
+
 protocol AuthViewControllerDelegate: AnyObject {
     func didAuthenticate(_ vc: AuthViewController)
 }
+// MARK: - AuthViewController
 
 final class AuthViewController: UIViewController {
+    
+    // MARK: - Constants
+    
     private let showWebViewSegueIdentifier = "ShowWebView"
+    
+    // MARK: - Dependencies
+    
     private let oauth2Service = OAuth2Service.shared
+    
+    // MARK: - Properties
     
     weak var delegate: AuthViewControllerDelegate?
     
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         configureBackButton()
     }
+    
+    // MARK: - Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == showWebViewSegueIdentifier {
@@ -36,13 +50,17 @@ final class AuthViewController: UIViewController {
         }
     }
     
+    // MARK: - UI Configuration
+    
     private func configureBackButton() {
-        navigationController?.navigationBar.backIndicatorImage = UIImage(named: "nav_back_button") 
+        navigationController?.navigationBar.backIndicatorImage = UIImage(named: "nav_back_button")
         navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: "nav_back_button")
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem?.tintColor = UIColor(named: "YP Black (iOS)")
     }
 }
+
+// MARK: - WebViewViewControllerDelegate
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {

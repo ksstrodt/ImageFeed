@@ -30,7 +30,7 @@ extension URLSession {
             if let data = data,
                let response = response,
                let statusCode = (response as? HTTPURLResponse)?.statusCode {
-                if 200 ..< 300 ~= statusCode {
+                if (200...299).contains(statusCode) {
                     fulfillCompletionOnTheMainThread(.success(data))
                 } else {
                     print("[Network] HTTP ошибка: статус код \(statusCode)")
