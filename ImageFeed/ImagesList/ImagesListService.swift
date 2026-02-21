@@ -78,7 +78,6 @@ final class ImagesListService {
                 }
                 
             case .failure(let error):
-                // Улучшенное логирование ошибки
                 if let networkError = error as? NetworkError {
                     switch networkError {
                     case .httpStatusCode(let statusCode):

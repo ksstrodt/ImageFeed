@@ -28,9 +28,6 @@ final class ImagesListCell: UITableViewCell {
           cellImage.contentMode = .scaleAspectFill
           cellImage.layer.cornerRadius = 16
           cellImage.layer.masksToBounds = true
-          
-          // Добавляем target для кнопки
-        //  likeButton.addTarget(self, action: #selector(likeButtonClicked), for: .touchUpInside)
       }
       
       override func prepareForReuse() {

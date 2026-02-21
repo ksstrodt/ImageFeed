@@ -17,7 +17,7 @@ final class SingleImageViewController: UIViewController {
         }
     }
     
-    var photoURL: String? // Добавляем для хранения URL фото
+    var photoURL: String?
     
     
     @IBOutlet private var scrollView: UIScrollView!
@@ -35,7 +35,6 @@ final class SingleImageViewController: UIViewController {
                rescaleAndCenterImageInScrollView(image: image)
            }
            
-           // Всегда загружаем полномасштабное изображение, даже если есть превью
            if let photoURL = photoURL {
                loadFullImage(url: photoURL)
            }
@@ -56,31 +55,28 @@ final class SingleImageViewController: UIViewController {
                return
            }
            
-           // Показываем лоадер
+          
            UIBlockingProgressHUD.show()
            print("Начинаем загрузку полноразмерного изображения: \(url)")
            
-           // Очищаем кэш для этого URL, чтобы гарантированно загрузить свежую версию
+           
            ImageCache.default.removeImage(forKey: imageURL.cacheKey)
            
-           // Настраиваем опции загрузки
            let options: KingfisherOptionsInfo = [
                .transition(.fade(0.2)),
                .cacheOriginalImage,
-               .forceRefresh, // Принудительно загружаем с сервера, игнорируя кэш
+               .forceRefresh,
                .downloadPriority(URLSessionTask.highPriority)
            ]
            
            imageView.kf.setImage(
                with: imageURL,
-               placeholder: image ?? UIImage(named: "placeholder"), // Показываем текущее изображение как плейсхолдер
+               placeholder: image ?? UIImage(named: "placeholder"),
                options: options,
                progressBlock: { receivedSize, totalSize in
-                   // Опционально: можно показывать прогресс загрузки
                    print("Загружено: \(receivedSize)/\(totalSize)")
                }
            ) { [weak self] result in
-               // Скрываем лоадер в любом случае
                DispatchQueue.main.async {
                    UIBlockingProgressHUD.dismiss()
                }
@@ -96,7 +92,6 @@ final class SingleImageViewController: UIViewController {
                case .failure(let error):
                    print("Ошибка загрузки полномасштабного изображения: \(error.localizedDescription)")
                    
-                   // Проверяем, не отменена ли задача (например, при уходе с экрана)
                    if error.isTaskCancelled {
                        print("Загрузка была отменена")
                        return

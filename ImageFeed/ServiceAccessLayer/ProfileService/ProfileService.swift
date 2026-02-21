@@ -49,7 +49,7 @@ final class ProfileService {
                 let profile = Profile(
                     username: result.username,
                     name: "\(result.firstName) \(result.lastName)"
-                        .trimmingCharacters(in: .whitespaces), // Убираем лишние пробелы
+                        .trimmingCharacters(in: .whitespaces),
                     loginName: "@\(result.username)",
                     bio: result.bio
                 )

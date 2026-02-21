@@ -59,7 +59,7 @@ final class ProfileViewController: UIViewController {
             .withTintColor(.lightGray, renderingMode: .alwaysOriginal)
             .withConfiguration(UIImage.SymbolConfiguration(pointSize: 70, weight: .regular, scale: .large))
 
-        let processor = RoundCornerImageProcessor(cornerRadius: 35) // Радиус для круга
+        let processor = RoundCornerImageProcessor(cornerRadius: 35) 
         KingfisherManager.shared.cache.removeImage(forKey: imageUrl.absoluteString)
         imageView.kf.indicatorType = .activity
         imageView.kf.setImage(

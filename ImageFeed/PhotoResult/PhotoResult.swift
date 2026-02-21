@@ -7,7 +7,6 @@
 import Foundation
 import UIKit
 
-// Структура для декодинга ответа от Unsplash API
 struct PhotoResult: Decodable {
     let id: String
     let width: Int
