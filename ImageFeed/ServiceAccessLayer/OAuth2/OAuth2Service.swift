@@ -7,6 +7,10 @@
 
 import Foundation
 
+enum AuthServiceError: Error {
+    case invalidRequest
+}
+
 final class OAuth2Service {
     static let shared = OAuth2Service()
     private init() {}
@@ -56,20 +60,20 @@ final class OAuth2Service {
         code: String,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
-        
+        assert(Thread.isMainThread)
         guard self.lastCode != code else {
                 print("[OAuth2Service] Запрос с этим кодом уже выполняется: \(code.prefix(10))...")
-                completion(.failure(NetworkError.urlSessionError)) 
+                completion(.failure(AuthServiceError.invalidRequest))
                 return
             }
         
         task?.cancel()
         lastCode = code
         
-        guard let request = makeOAuthTokenRequest(code: code) else {
-            let error = NetworkError.invalidRequest
-            print("[OAuth2Service] Не удалось создать запрос для кода: \(code)")
-            completion(.failure(error))
+        guard
+            let request = makeOAuthTokenRequest(code: code)
+        else {
+            completion(.failure(AuthServiceError.invalidRequest))
             lastCode = nil
             return
         }

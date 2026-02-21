@@ -5,6 +5,7 @@
 //  Created by bot on 08.01.2026.
 //
 import UIKit
+import ProgressHUD
 
 // MARK: - AuthViewControllerDelegate
 
@@ -64,17 +65,24 @@ final class AuthViewController: UIViewController {
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-            fetchOAuthToken(code) { [weak self] result in
+            
+        // Показываем индикатор загрузки
+        UIBlockingProgressHUD.show()
+        
+        fetchOAuthToken(code) { [weak self] result in
                 switch result {
                 case .success:
                     DispatchQueue.main.async {
+                        // Скрываем индикатор загрузки
+                        UIBlockingProgressHUD.dismiss()
                         guard let self = self else { return }
                         vc.dismiss(animated: true) {
                             self.delegate?.didAuthenticate(self)
                         }
                     }
-                case .failure(let error):
-                    print("[Auth] Ошибка: \(error)")
+                case let .failure(error):
+                    print("Ошибка при аутентификации: \(error.localizedDescription)")
+                    self?.showAuthErrorAlert()  // Показываем алерт при ошибке
                 }
             }
         }
@@ -92,3 +100,15 @@ extension AuthViewController {
     }
 }
 
+extension AuthViewController {
+    func showAuthErrorAlert() {
+        let alertController = UIAlertController(
+            title: "Что-то пошло не так",
+            message: "Не удалось войти в систему",
+            preferredStyle: .alert
+        )
+        let okAction = UIAlertAction(title: "Ок", style: .default, handler: nil)
+        alertController.addAction(okAction)
+        present(alertController, animated: true, completion: nil)
+    }
+}
