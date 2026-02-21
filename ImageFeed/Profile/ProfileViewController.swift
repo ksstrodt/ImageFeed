@@ -166,8 +166,44 @@ final class ProfileViewController: UIViewController {
     }
     
     @objc private func exitButtonTapped() {
-        print("Exit button tapped!")
+        showLogoutConfirmation()
+    }
+
+    private func showLogoutConfirmation() {
+        let alert = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены, что хотите выйти?",
+            preferredStyle: .alert
+        )
         
+        let logoutAction = UIAlertAction(title: "Да", style: .destructive) { [weak self] _ in
+            self?.performLogout()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Нет", style: .default) { _ in
+            
+        }
+        
+        if let blueColor = UIColor(named: "YP Blue (iOS)") {
+            logoutAction.setValue(blueColor, forKey: "titleTextColor")
+            cancelAction.setValue(blueColor, forKey: "titleTextColor")
+        }
+        
+        
+        alert.addAction(logoutAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+
+    private func performLogout() {
+        UIBlockingProgressHUD.show()
+        
+        ProfileLogoutService.shared.logout()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            UIBlockingProgressHUD.dismiss()
+        }
     }
     
     private func updateProfileDetails(profile: Profile) {
@@ -203,7 +239,6 @@ final class ProfileViewController: UIViewController {
                     switch result {
                     case .success(let profile):
                         self?.updateProfileDetails(profile: profile)
-                        // Загружаем аватарку после получения профиля
                         self?.loadProfileImage(username: profile.username)
                     case .failure(let error):
                         print("Ошибка загрузки профиля: \(error)")
@@ -221,7 +256,6 @@ final class ProfileViewController: UIViewController {
                 DispatchQueue.main.async {
                     switch result {
                     case .success:
-                        // Уведомление уже отправлено, и updateAvatar() будет вызван через наблюдатель
                         print("URL аватарки получен")
                     case .failure(let error):
                         print("Ошибка загрузки URL аватарки: \(error)")
