@@ -73,7 +73,7 @@ extension AuthViewController: WebViewViewControllerDelegate {
                 case .success:
                     DispatchQueue.main.async {
                         UIBlockingProgressHUD.dismiss()
-                        guard let self = self else { return }
+                        guard let self else { return }
                         vc.dismiss(animated: true) {
                             self.delegate?.didAuthenticate(self)
                         }

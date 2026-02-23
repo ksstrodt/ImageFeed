@@ -6,21 +6,23 @@
 //
 import Foundation
 import Kingfisher
-internal import CoreGraphics
+import CoreGraphics
 
 final class ImagesListService {
     static let shared = ImagesListService()
-        static let didChangeNotification = Notification.Name(rawValue: "ImagesListServiceDidChange")
-        static let didChangeLikeNotification = Notification.Name(rawValue: "ImagesListServiceDidChangeLike")
-        
-        private(set) var photos: [Photo] = []
-        private var lastLoadedPage: Int?
-        private var task: URLSessionTask?
-        private var likeTasks: [String: URLSessionTask] = [:]
-        private let perPage = 10
-        
-        private init() {}
-
+    static let didChangeNotification = Notification.Name("ImagesListServiceDidChange")
+    static let didChangeLikeNotification = Notification.Name("ImagesListServiceDidChangeLike")
+    
+    private(set) var photos: [Photo] = []
+    private var lastLoadedPage: Int?
+    private var task: URLSessionTask?
+    private var likeTasks: [String: URLSessionTask] = [:]
+    private let perPage = 10
+    
+    private let iso8601Formatter = ISO8601DateFormatter.shared
+    
+    private init() {}
+    
     
     func fetchPhotosNextPage() {
         guard task == nil else {
@@ -100,82 +102,81 @@ final class ImagesListService {
     }
     
     func changeLike(photoId: String, isLike: Bool, _ completion: @escaping (Result<Void, Error>) -> Void) {
-          
-           likeTasks[photoId]?.cancel()
-           
-           let httpMethod = isLike ? "POST" : "DELETE"
-           
-           guard let token = OAuth2TokenStorage.shared.token,
-                 let url = URL(string: "https://api.unsplash.com/photos/\(photoId)/like") else {
-               completion(.failure(NetworkError.invalidRequest))
-               return
-           }
-           
-           var request = URLRequest(url: url)
-           request.httpMethod = httpMethod
-           request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-           
-           let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<LikePhotoResult, Error>) in
-               guard let self = self else { return }
-               
-               defer {
-                   self.likeTasks[photoId] = nil
-               }
-               
-               switch result {
-               case .success(let likeResult):
-                   DispatchQueue.main.async {
-                      
-                       if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
-                           let photo = self.photos[index]
-                           let updatedPhoto = Photo(
-                               id: photo.id,
-                               size: photo.size,
-                               createdAt: photo.createdAt,
-                               welcomeDescription: photo.welcomeDescription,
-                               thumbImageURL: photo.thumbImageURL,
-                               largeImageURL: photo.largeImageURL,
-                               isLiked: likeResult.photo.likedByUser
-                           )
-                           self.photos[index] = updatedPhoto
-                           
-                          
-                           NotificationCenter.default.post(
-                               name: ImagesListService.didChangeLikeNotification,
-                               object: self,
-                               userInfo: [
-                                   "photoId": photoId,
-                                   "isLiked": updatedPhoto.isLiked,
-                                   "index": index
-                               ]
-                           )
-                       }
-                       completion(.success(()))
-                   }
-                   
-               case .failure(let error):
-                   DispatchQueue.main.async {
-                       print("[ImagesListService] Ошибка при \(isLike ? "лайке" : "дизлайке"): \(error.localizedDescription)")
-                       completion(.failure(error))
-                   }
-               }
-           }
-           
-           likeTasks[photoId] = task
-           task.resume()
-       }
+        
+        likeTasks[photoId]?.cancel()
+        
+        let httpMethod = isLike ? "POST" : "DELETE"
+        
+        guard let token = OAuth2TokenStorage.shared.token,
+              let url = URL(string: "https://api.unsplash.com/photos/\(photoId)/like") else {
+            completion(.failure(NetworkError.invalidRequest))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = httpMethod
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<LikePhotoResult, Error>) in
+            guard let self = self else { return }
+            
+            defer {
+                self.likeTasks[photoId] = nil
+            }
+            
+            switch result {
+            case .success(let likeResult):
+                DispatchQueue.main.async {
+                    
+                    if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
+                        let photo = self.photos[index]
+                        let updatedPhoto = Photo(
+                            id: photo.id,
+                            size: photo.size,
+                            createdAt: photo.createdAt,
+                            welcomeDescription: photo.welcomeDescription,
+                            thumbImageURL: photo.thumbImageURL,
+                            largeImageURL: photo.largeImageURL,
+                            isLiked: likeResult.photo.likedByUser
+                        )
+                        self.photos[index] = updatedPhoto
+                        
+                        
+                        NotificationCenter.default.post(
+                            name: ImagesListService.didChangeLikeNotification,
+                            object: self,
+                            userInfo: [
+                                "photoId": photoId,
+                                "isLiked": updatedPhoto.isLiked,
+                                "index": index
+                            ]
+                        )
+                    }
+                    completion(.success(()))
+                }
+                
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    print("[ImagesListService] Ошибка при \(isLike ? "лайке" : "дизлайке"): \(error.localizedDescription)")
+                    completion(.failure(error))
+                }
+            }
+        }
+        
+        likeTasks[photoId] = task
+        task.resume()
+    }
     
     func clearPhotos() {
-            photos = []
-            lastLoadedPage = nil
-           
-            likeTasks.values.forEach { $0.cancel() }
-            likeTasks.removeAll()
-        }
+        photos = []
+        lastLoadedPage = nil
+        
+        likeTasks.values.forEach { $0.cancel() }
+        likeTasks.removeAll()
+    }
     
     private func convertToPhoto(from photoResult: PhotoResult) -> Photo {
-        let dateFormatter = ISO8601DateFormatter()
-        let date = dateFormatter.date(from: photoResult.createdAt ?? "")
+        let date = iso8601Formatter.date(from: photoResult.createdAt ?? "")
         
         return Photo(
             id: photoResult.id,
@@ -188,7 +189,7 @@ final class ImagesListService {
         )
     }
     
-   
+    
     struct LikePhotoResult: Decodable {
         let photo: PhotoResult
     }
@@ -206,7 +207,7 @@ final class ImagesListService {
         
         cleanImagesCache()
     }
-
+    
     private func cleanImagesCache() {
         let cache = ImageCache.default
         cache.clearMemoryCache()

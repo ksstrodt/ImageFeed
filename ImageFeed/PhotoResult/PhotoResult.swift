@@ -5,7 +5,7 @@
 //  Created by bot on 08.02.2026.
 //
 import Foundation
-import UIKit
+//import UIKit
 
 struct PhotoResult: Decodable {
     let id: String

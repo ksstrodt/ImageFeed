@@ -17,12 +17,7 @@ final class ImagesListViewController: UIViewController {
     
     @IBOutlet private weak var tableView: UITableView!
     
-    private lazy var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
-        return formatter
-    }()
+    private let dateFormatter = DateFormatter.imageList
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,7 +28,7 @@ final class ImagesListViewController: UIViewController {
     }
     
     private func setupTableView() {
-        tableView.rowHeight = 200
+        //tableView.rowHeight = 200
         tableView.contentInset = UIEdgeInsets(
             top: 12,
             left: 0,
@@ -121,10 +116,10 @@ final class ImagesListViewController: UIViewController {
             
             let photo = photos[indexPath.row]
             
-           
+            
             viewController.photoURL = photo.largeImageURL
             
-           
+            
             if let cell = tableView.cellForRow(at: indexPath) as? ImagesListCell,
                let previewImage = cell.cellImage.image {
                 viewController.image = previewImage
@@ -196,10 +191,10 @@ extension ImagesListViewController {
         
         let photo = photos[indexPath.row]
         
-       
+        
         cell.delegate = self
         
-     
+        
         if let url = URL(string: photo.thumbImageURL) {
             cell.cellImage.kf.indicatorType = .activity
             cell.cellImage.kf.setImage(
@@ -222,7 +217,7 @@ extension ImagesListViewController {
             }
         }
         
-       
+        
         if let date = photo.createdAt {
             cell.dateLabel.text = dateFormatter.string(from: date)
         } else {
@@ -273,10 +268,10 @@ extension ImagesListViewController: ImagesListCellDelegate {
                     break
                     
                 case .failure(let error):
-        
+                    
                     print("Ошибка при изменении лайка: \(error)")
                     
-                  
+                    
                     let revertedPhoto = Photo(
                         id: photo.id,
                         size: photo.size,
