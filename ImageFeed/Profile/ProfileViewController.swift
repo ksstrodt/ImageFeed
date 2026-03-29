@@ -52,14 +52,14 @@ final class ProfileViewController: UIViewController {
             let profileImageURL = ProfileImageService.shared.avatarURL,
             let imageUrl = URL(string: profileImageURL)
         else { return }
-
+        
         print("imageUrl: \(imageUrl)")
-
+        
         let placeholderImage = UIImage(systemName: "person.circle.fill")?
             .withTintColor(.lightGray, renderingMode: .alwaysOriginal)
             .withConfiguration(UIImage.SymbolConfiguration(pointSize: 70, weight: .regular, scale: .large))
-
-        let processor = RoundCornerImageProcessor(cornerRadius: 35) // Радиус для круга
+        
+        let processor = RoundCornerImageProcessor(cornerRadius: 35)
         KingfisherManager.shared.cache.removeImage(forKey: imageUrl.absoluteString)
         imageView.kf.indicatorType = .activity
         imageView.kf.setImage(
@@ -67,11 +67,11 @@ final class ProfileViewController: UIViewController {
             placeholder: placeholderImage,
             options: [
                 .processor(processor),
-                .scaleFactor(UIScreen.main.scale), 
+                .scaleFactor(UIScreen.main.scale),
                 .cacheOriginalImage,
                 .forceRefresh
             ]) { result in
-
+                
                 switch result {
                 case .success(let value):
                     print(value.image)
@@ -84,9 +84,9 @@ final class ProfileViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-           super.viewWillAppear(animated)
-           updateProfileIfNeeded()
-       }
+        super.viewWillAppear(animated)
+        updateProfileIfNeeded()
+    }
     
     private func setupImageView() {
         let image = UIImage(named: "Avatar")
@@ -129,14 +129,14 @@ final class ProfileViewController: UIViewController {
         descriptionLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         descriptionLabel.textColor = UIColor(named: "YP White (iOS)")
         descriptionLabel.text = "Hello, world!"
-        descriptionLabel.numberOfLines = 0 
+        descriptionLabel.numberOfLines = 0
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(descriptionLabel)
     }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-        
+            
             imageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             imageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 32),
             imageView.widthAnchor.constraint(equalToConstant: 70),
@@ -166,67 +166,100 @@ final class ProfileViewController: UIViewController {
     }
     
     @objc private func exitButtonTapped() {
-        print("Exit button tapped!")
+        showLogoutConfirmation()
+    }
+    
+    private func showLogoutConfirmation() {
+        let alert = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены, что хотите выйти?",
+            preferredStyle: .alert
+        )
         
+        let logoutAction = UIAlertAction(title: "Да", style: .destructive) { [weak self] _ in
+            self?.performLogout()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Нет", style: .default) { _ in
+            
+        }
+        
+        let blueColor = UIColor(resource: .ypBlueIOS)
+        logoutAction.setValue(blueColor, forKey: "titleTextColor")
+        cancelAction.setValue(blueColor, forKey: "titleTextColor")
+        
+        
+        alert.addAction(logoutAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+    
+    private func performLogout() {
+        UIBlockingProgressHUD.show()
+        
+        ProfileLogoutService.shared.logout()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            UIBlockingProgressHUD.dismiss()
+        }
     }
     
     private func updateProfileDetails(profile: Profile) {
         nameLabel.text = profile.name.isEmpty
-            ? "Имя не указано"
-            : profile.name
+        ? "Имя не указано"
+        : profile.name
         loginNameLabel.text = profile.loginName.isEmpty
-            ? "@неизвестный_пользователь"
-            : profile.loginName
+        ? "@неизвестный_пользователь"
+        : profile.loginName
         descriptionLabel.text = (profile.bio?.isEmpty ?? true)
-            ? "Профиль не заполнен"
-            : profile.bio
+        ? "Профиль не заполнен"
+        : profile.bio
     }
     
     private func updateProfileIfNeeded() {
-            if ProfileService.shared.profile == nil {
-                loadProfile()
-            } else {
-                updateProfileDetails(profile: ProfileService.shared.profile!)
-                if let username = ProfileService.shared.profile?.username {
-                    loadProfileImage(username: username)
-                }
+        if ProfileService.shared.profile == nil {
+            loadProfile()
+        } else {
+            updateProfileDetails(profile: ProfileService.shared.profile!)
+            if let username = ProfileService.shared.profile?.username {
+                loadProfileImage(username: username)
             }
+        }
+    }
+    
+    private func loadProfile() {
+        guard let token = OAuth2TokenStorage.shared.token else {
+            return
         }
         
-        private func loadProfile() {
-            guard let token = OAuth2TokenStorage.shared.token else {
-                return
-            }
-            
-            ProfileService.shared.fetchProfile(token) { [weak self] result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let profile):
-                        self?.updateProfileDetails(profile: profile)
-                        // Загружаем аватарку после получения профиля
-                        self?.loadProfileImage(username: profile.username)
-                    case .failure(let error):
-                        print("Ошибка загрузки профиля: \(error)")
-                    }
+        ProfileService.shared.fetchProfile(token) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let profile):
+                    self?.updateProfileDetails(profile: profile)
+                    self?.loadProfileImage(username: profile.username)
+                case .failure(let error):
+                    print("Ошибка загрузки профиля: \(error)")
                 }
             }
+        }
+    }
+    
+    private func loadProfileImage(username: String) {
+        guard let token = OAuth2TokenStorage.shared.token else {
+            return
         }
         
-        private func loadProfileImage(username: String) {
-            guard let token = OAuth2TokenStorage.shared.token else {
-                return
-            }
-            
-            ProfileImageService.shared.fetchProfileImageURL(username: username) { [weak self] result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success:
-                        // Уведомление уже отправлено, и updateAvatar() будет вызван через наблюдатель
-                        print("URL аватарки получен")
-                    case .failure(let error):
-                        print("Ошибка загрузки URL аватарки: \(error)")
-                    }
+        ProfileImageService.shared.fetchProfileImageURL(username: username) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    print("URL аватарки получен")
+                case .failure(let error):
+                    print("Ошибка загрузки URL аватарки: \(error)")
                 }
             }
         }
+    }
 }

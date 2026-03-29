@@ -25,7 +25,7 @@ extension URLSession {
                 completion(result)
             }
         }
-
+        
         let task = dataTask(with: request, completionHandler: { data, response, error in
             if let data = data,
                let response = response,
@@ -44,7 +44,7 @@ extension URLSession {
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
             }
         })
-
+        
         return task
     }
     

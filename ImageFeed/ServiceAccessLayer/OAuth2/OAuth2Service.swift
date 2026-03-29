@@ -20,7 +20,7 @@ final class OAuth2Service {
     
     // MARK: - Создание URLRequest
     private func makeOAuthTokenRequest(code: String) -> URLRequest? {
-       
+        
         guard let url = URL(string: "https://unsplash.com/oauth/token") else {
             print("[OAuth2Service] Некорректный URL")
             return nil
@@ -29,7 +29,7 @@ final class OAuth2Service {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
-       
+        
         let parameters: [String: String] = [
             "client_id": Constants.accessKey,
             "client_secret": Constants.secretKey,
@@ -45,9 +45,9 @@ final class OAuth2Service {
         
         request.httpBody = bodyString.data(using: .utf8)
         request.setValue("application/x-www-form-urlencoded",
-                        forHTTPHeaderField: "Content-Type")
+                         forHTTPHeaderField: "Content-Type")
         
-       
+        
         print("[OAuth2Service] Создан запрос для кода: \(code)")
         print("[OAuth2Service] Body: \(bodyString)")
         print("[OAuth2Service] Headers: \(request.allHTTPHeaderFields ?? [:])")
@@ -62,10 +62,10 @@ final class OAuth2Service {
     ) {
         assert(Thread.isMainThread)
         guard self.lastCode != code else {
-                print("[OAuth2Service] Запрос с этим кодом уже выполняется: \(code.prefix(10))...")
-                completion(.failure(AuthServiceError.invalidRequest))
-                return
-            }
+            print("[OAuth2Service] Запрос с этим кодом уже выполняется: \(code.prefix(10))...")
+            completion(.failure(AuthServiceError.invalidRequest))
+            return
+        }
         
         task?.cancel()
         lastCode = code

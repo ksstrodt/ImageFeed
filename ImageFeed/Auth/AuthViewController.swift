@@ -66,23 +66,21 @@ final class AuthViewController: UIViewController {
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
             
-        // Показываем индикатор загрузки
         UIBlockingProgressHUD.show()
         
         fetchOAuthToken(code) { [weak self] result in
                 switch result {
                 case .success:
                     DispatchQueue.main.async {
-                        // Скрываем индикатор загрузки
                         UIBlockingProgressHUD.dismiss()
-                        guard let self = self else { return }
+                        guard let self else { return }
                         vc.dismiss(animated: true) {
                             self.delegate?.didAuthenticate(self)
                         }
                     }
                 case let .failure(error):
                     print("Ошибка при аутентификации: \(error.localizedDescription)")
-                    self?.showAuthErrorAlert()  // Показываем алерт при ошибке
+                    self?.showAuthErrorAlert()
                 }
             }
         }
