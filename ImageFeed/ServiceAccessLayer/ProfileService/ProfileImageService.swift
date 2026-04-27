@@ -93,3 +93,4 @@ final class ProfileImageService {
         task = nil
     }
 }
+extension ProfileImageService: ProfileImageServiceProtocol { }

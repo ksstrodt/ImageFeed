@@ -33,6 +33,18 @@ final class AuthViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureBackButton()
+        setupAuthenticateButton()
+    }
+    
+    private func setupAuthenticateButton() {
+        for subview in view.subviews {
+            if let button = subview as? UIButton,
+               button.titleLabel?.text == "Authenticate" ||
+                button.currentTitle == "Authenticate" {
+                button.accessibilityIdentifier = "Authenticate"
+                break
+            }
+        }
     }
     
     // MARK: - Navigation
@@ -45,6 +57,10 @@ final class AuthViewController: UIViewController {
                 assertionFailure("Failed to prepare for \(showWebViewSegueIdentifier)")
                 return
             }
+            let authHelper = AuthHelper()
+            let webViewPresenter = WebViewPresenter(authHelper: authHelper)
+            webViewViewController.presenter = webViewPresenter
+            webViewPresenter.view = webViewViewController
             webViewViewController.delegate = self
         } else {
             super.prepare(for: segue, sender: sender)

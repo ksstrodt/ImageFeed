@@ -55,3 +55,4 @@ final class ProfileLogoutService {
         UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
     }
 }
+extension ProfileLogoutService: ProfileLogoutServiceProtocol { }

@@ -7,6 +7,7 @@
 import Foundation
 import Kingfisher
 import CoreGraphics
+extension ImagesListService: ImagesListServiceProtocol { }
 
 final class ImagesListService {
     static let shared = ImagesListService()
