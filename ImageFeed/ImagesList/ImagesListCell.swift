@@ -28,6 +28,12 @@ final class ImagesListCell: UITableViewCell {
         cellImage.contentMode = .scaleAspectFill
         cellImage.layer.cornerRadius = 16
         cellImage.layer.masksToBounds = true
+        
+            likeButton.isHidden = false
+            likeButton.isUserInteractionEnabled = true
+            likeButton.accessibilityIdentifier = "like button off"
+            likeButton.accessibilityLabel = "Like"
+           self.accessibilityIdentifier = "imageCell"
     }
     
     override func prepareForReuse() {

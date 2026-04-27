@@ -85,3 +85,5 @@ final class ProfileService {
         task = nil
     }
 }
+
+extension ProfileService: ProfileServiceProtocol { }
